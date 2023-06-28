@@ -7,7 +7,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
-// didnt use compass's example cause eslint keeps messing me up
+// didn't use compass's example cause eslint keeps messing me up
 const generateRandomString = function() {
   // Generate a random alphanumeric string of 6 characters
   let result = "";
@@ -47,7 +47,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   console.log(req.params.id);
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id]};
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
@@ -59,6 +59,12 @@ app.get("/u/:id", (req, res) => {
   } else {
     res.status(404).send("Short URL not found");
   }
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  delete urlDatabase[shortURL]; // Delete the URL resource from urlDatabase
+  res.redirect("/urls"); // Redirect back to the urls_index page
 });
 
 app.get("/urls.json", (req, res) => {
