@@ -51,6 +51,13 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:id/update", (req, res) => {
+  const shortURL = req.params.id;
+  const updatedLongURL = req.body.longURL;
+  urlDatabase[shortURL] = updatedLongURL; // Update the longURL value for the given shortURL
+  res.redirect("/urls"); // Redirect back to the urls_index page
+});
+
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
