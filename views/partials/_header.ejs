@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-success">
   <a class="navbar-brand" href="/urls">TinyApp</a>
   <button
     class="navbar-toggler"
@@ -22,6 +22,12 @@
           <form method="POST" action="/logout" class="nav-link">
             <button type="submit" class="btn btn-link">Logout</button>
           </form>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/urls">URLs</a> <!-- Add the redirect button to /urls -->
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/urls/new">Create New URL</a> <!-- Add the create new URL button to /urls/new -->
         </li>
       <% } else { %>
         <li class="nav-item">
