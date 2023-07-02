@@ -32,8 +32,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const username = req.cookies.username;
   const templateVars = {
-    username: users[req.cookies.user_id],
+    username,
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -48,17 +49,19 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  const username = req.cookies.username;
   const templateVars = {
-    username: users[req.cookies.user_id]
+    username
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
+  const username = req.cookies.username;
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    username: users[req.cookies.user_id]
+    username
   };
   res.render("urls_show", templateVars);
 });
@@ -99,52 +102,64 @@ app.post("/login", (req, res) => {
   }
 
   if (user) {
-    res.cookie("user_id", user.id);
+    res.cookie("username", username);
   } else {
     // Generate a unique ID for the new user
     const userId = generateRandomString();
     users[userId] = { id: userId, username: username };
-    res.cookie("user_id", userId);
+    res.cookie("username", username);
   }
 
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  res.clearCookie("username");
   res.redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
+  const username = req.cookies.username;
   const templateVars = {
-    username: users[req.cookies.user_id]
+    username
   };
   res.render("register", templateVars);
 });
 
 app.post("/register", (req, res) => {
-  const username = req.body.username;
-  if (!username || username === "") {
-    res.status(400).send("Username cannot be empty.");
+  const { username, password } = req.body;
+
+  // Check if the username or password is empty
+  if (!username || !password) {
+    res.status(400).send("Username and password are required.");
     return;
   }
 
-  for (const userId in users) {
-    if (users[userId].username === username) {
-      res.status(400).send("Username already exists.");
-      return;
-    }
+  // Check if the username already exists
+  const user = Object.values(users).find(user => user.username === username);
+  if (user) {
+    res.status(400).send("Username already exists.");
+    return;
   }
 
+  // Create a new user object and add it to the users object
   const userId = generateRandomString();
-  users[userId] = { id: userId, username: username };
-  res.cookie("user_id", userId);
+  const newUser = {
+    id: userId,
+    username,
+    password
+  };
+  users[userId] = newUser;
+
+  res.cookie("username", username);
+
   res.redirect("/urls");
 });
 
 app.get("/login", (req, res) => {
+  const username = req.cookies.username;
   const templateVars = {
-    username: users[req.cookies.user_id]
+    username
   };
   res.render("login", templateVars);
 });
