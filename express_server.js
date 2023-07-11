@@ -91,26 +91,17 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
-  let user = null;
+  const password = req.body.password;
 
-  // Check if the user exists in the users object
-  for (const userId in users) {
-    if (users[userId].username === username) {
-      user = users[userId];
-      break;
-    }
-  }
+  // Check if the username exists in the users object
+  const user = Object.values(users).find(user => user.username === username);
 
-  if (user) {
+  if (user && user.password === password) {
     res.cookie("username", username);
+    res.redirect("/urls");
   } else {
-    // Generate a unique ID for the new user
-    const userId = generateRandomString();
-    users[userId] = { id: userId, username: username };
-    res.cookie("username", username);
+    res.status(401).send("Invalid username or password");
   }
-
-  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
