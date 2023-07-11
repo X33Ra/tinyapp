@@ -9,8 +9,8 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Generate a random alphanumeric string of 6 characters
-const generateRandomString = function() {
+// Helper function to generate a random alphanumeric string of 6 characters
+const generateRandomString = () => {
   let result = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const length = 6;
@@ -27,11 +27,32 @@ const urlDatabase = {
 
 const users = {}; // User object to store registered users
 
+// Helper function to check if a user exists in the users object
+const getUserByUsername = (username) => {
+  return Object.values(users).find((user) => user.username === username);
+};
+
+// Helper function to check if user credentials are valid
+const validateCredentials = (username, password) => {
+  const user = getUserByUsername(username);
+  return user && user.password === password;
+};
+
+// Middleware to check if user is logged in
+const requireLogin = (req, res, next) => {
+  const username = req.cookies.username;
+  if (!username) {
+    res.redirect("/login");
+    return;
+  }
+  next();
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls", (req, res) => {
+app.get("/urls", requireLogin, (req, res) => {
   const username = req.cookies.username;
   const templateVars = {
     username,
@@ -40,7 +61,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls", requireLogin, (req, res) => {
   const randomString = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[randomString] = longURL;
@@ -48,7 +69,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomString}`);
 });
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", requireLogin, (req, res) => {
   const username = req.cookies.username;
   const templateVars = {
     username
@@ -56,7 +77,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.get("/urls/:id", (req, res) => {
+app.get("/urls/:id", requireLogin, (req, res) => {
   const username = req.cookies.username;
   const templateVars = {
     id: req.params.id,
@@ -66,7 +87,7 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls/:id/update", (req, res) => {
+app.post("/urls/:id/update", requireLogin, (req, res) => {
   const shortURL = req.params.id;
   const updatedLongURL = req.body.longURL;
   urlDatabase[shortURL] = updatedLongURL;
@@ -83,20 +104,16 @@ app.get("/u/:id", (req, res) => {
   }
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.post("/urls/:id/delete", requireLogin, (req, res) => {
   const shortURL = req.params.id;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
+  const { username, password } = req.body;
 
-  // Check if the username exists in the users object
-  const user = Object.values(users).find(user => user.username === username);
-
-  if (user && user.password === password) {
+  if (validateCredentials(username, password)) {
     res.cookie("username", username);
     res.redirect("/urls");
   } else {
@@ -120,20 +137,16 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { username, password } = req.body;
 
-  // Check if the username or password is empty
   if (!username || !password) {
     res.status(400).send("Username and password are required.");
     return;
   }
 
-  // Check if the username already exists
-  const user = Object.values(users).find(user => user.username === username);
-  if (user) {
+  if (getUserByUsername(username)) {
     res.status(400).send("Username already exists.");
     return;
   }
 
-  // Create a new user object and add it to the users object
   const userId = generateRandomString();
   const newUser = {
     id: userId,
