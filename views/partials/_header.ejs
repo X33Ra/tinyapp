@@ -14,9 +14,9 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <% if (username) { %> <!-- Check if username exists -->
+      <% if (user) { %> <!-- Check if user exists -->
         <li class="nav-item">
-          <span class="navbar-text">Logged in as <%= username %></span> <!-- Display the username -->
+          <span class="navbar-text">Logged in as <%= user.email %></span> <!-- Display the user's email -->
         </li>
         <li class="nav-item">
           <form method="POST" action="/logout" class="nav-link">
