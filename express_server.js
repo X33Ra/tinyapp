@@ -4,6 +4,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +36,7 @@ const getUserByEmail = (email) => {
 // Helper function to check if user credentials are valid
 const validateCredentials = (email, password) => {
   const user = getUserByEmail(email);
-  return user && user.password === password;
+  return user && bcrypt.compareSync(password, user.password);
 };
 
 // Middleware to check if user is logged in
@@ -149,10 +150,11 @@ app.post("/register", (req, res) => {
   }
 
   const userId = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const newUser = {
     id: userId,
     email,
-    password
+    password: hashedPassword
   };
   users[userId] = newUser;
 
